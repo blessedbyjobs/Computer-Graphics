@@ -14,7 +14,10 @@ class FirstOpenGLProjectRenderer : GLSurfaceView.Renderer {
     private val mMVPMatrix = FloatArray(16)
 
     /** Store our model data in a float buffer.  */
-    private val mTriangle1Vertices: FloatBuffer
+    private val roofVertices: FloatBuffer
+    private val doorVertices: FloatBuffer
+    private val buildingVertices: FloatBuffer
+    private val windowVertices: FloatBuffer
     private var mColorHandle = 0
 
     /** How many bytes per float.  */
@@ -38,7 +41,7 @@ class FirstOpenGLProjectRenderer : GLSurfaceView.Renderer {
     private val x = 0f
 
     override fun onSurfaceCreated(glUnused: GL10, config: EGLConfig) {
-        GLES10.glClearColor(0.5f, 0.0f, 0.5f, 1.0f)
+        GLES10.glClearColor(1f, 1f, 1f, 1.0f)
         val vertexShader = """attribute vec4 a_Position;     
 attribute vec4 a_Color;        
 varying vec4 v_Color;          
@@ -147,10 +150,14 @@ void main()
     override fun onDrawFrame(glUnused: GL10) {
         //   glClear(GL_COLOR_BUFFER_BIT);
         GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT or GLES20.GL_COLOR_BUFFER_BIT)
+
         // Draw the triangle facing straight on.
         //Matrix.setIdentityM(mModelMatrix, 0);
         // Matrix.translateM(mModelMatrix, 0, x, 0.0f, 0.0f);
-        drawTriangle(mTriangle1Vertices)
+        drawTriangle(roofVertices)
+        drawTriangle(buildingVertices)
+        drawTriangle(doorVertices)
+        drawTriangle(windowVertices)
     }
 
     /**
@@ -184,24 +191,112 @@ void main()
             Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mMVPMatrix, 0); */
 
         // GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mMVPMatrix, 0);
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 3)
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 13)
     }
 
     init {
         // Define points for equilateral triangles.
 
         // This triangle is white_blue.First sail is mainsail
-        val triangle1VerticesData = floatArrayOf( // X, Y, Z,
+
+        // 4c1f1a
+        val roofColor = Coords(76,31,26)
+        val windowColor = Coords(251,180,13)
+//        val windowColor = Coords(251,180,13)
+        val roofVerticesData = floatArrayOf(
+            // X, Y, Z,
             // R, G, B, A
-            -0.5f, -0.25f, 0.0f,
-            1.0f, 1.0f, 1.0f, 1.0f,
-            0.0f, -0.25f, 0.0f,
-            0.8f, 0.8f, 1.0f, 1.0f,
-            0.0f, 0.56f, 0.0f,
-            0.8f, 0.8f, 1.0f, 1.0f
+            0.0f, 0.75f, 0.0f,
+            roofColor.redColor, roofColor.greenColor, roofColor.blueColor, 1.0f,
+            0.89f, 0.3125f, 0.0f,
+            roofColor.redColor, roofColor.greenColor, roofColor.blueColor, 1.0f,
+            -0.89f, 0.3125f, 0.0f,
+            roofColor.redColor, roofColor.greenColor, roofColor.blueColor, 1.0f,
         )
-        mTriangle1Vertices = ByteBuffer.allocateDirect(triangle1VerticesData.size * mBytesPerFloat)
+        val buildingVerticesData = buildRectangleVertices(
+            leftTop = Coords(-0.89f, 0.3125f),
+            leftBottom = Coords(-0.89f, -0.75f),
+            rightBottom = Coords(0.89f, -0.75f),
+            rightTop = Coords(0.89f, 0.3125f),
+            color = Coords(57,34,32)
+        )
+
+        val doorVerticesData = buildRectangleVertices(
+            leftTop = Coords(-0.67f, -0.1875f),
+            leftBottom = Coords(-0.67f, -0.75f),
+            rightBottom = Coords(-0.11f, -0.75f),
+            rightTop = Coords(-0.11f, -0.1875f),
+            color = roofColor
+        )
+
+        val windowVerticesData = buildRectangleVertices(
+            leftTop = Coords(0.167f, 0.125f),
+            leftBottom = Coords(0.167f, -0.21875f),
+            rightBottom = Coords(0.67f, -0.21875f),
+            rightTop = Coords(0.67f, 0.125f),
+            color = windowColor
+        )
+
+
+        roofVertices = ByteBuffer.allocateDirect(roofVerticesData.size * mBytesPerFloat)
             .order(ByteOrder.nativeOrder()).asFloatBuffer()
-        mTriangle1Vertices.put(triangle1VerticesData).position(0)
+        windowVertices = ByteBuffer.allocateDirect(windowVerticesData.size * mBytesPerFloat)
+            .order(ByteOrder.nativeOrder()).asFloatBuffer()
+        doorVertices = ByteBuffer.allocateDirect(doorVerticesData.size * mBytesPerFloat)
+            .order(ByteOrder.nativeOrder()).asFloatBuffer()
+        buildingVertices = ByteBuffer.allocateDirect(buildingVerticesData.size * mBytesPerFloat)
+            .order(ByteOrder.nativeOrder()).asFloatBuffer()
+
+        roofVertices.put(roofVerticesData).position(0)
+        doorVertices.put(doorVerticesData).position(0)
+        windowVertices.put(windowVerticesData).position(0)
+        buildingVertices.put(buildingVerticesData).position(0)
     }
+
+    private fun buildRectangleVertices(
+        leftTop: Coords,
+        rightTop: Coords,
+        rightBottom: Coords,
+        leftBottom: Coords,
+        color: Coords
+    ) =
+        floatArrayOf(
+            // X, Y, Z,
+            // R, G, B, A
+            leftTop.x, leftTop.y, leftTop.z,
+            color.redColor, color.greenColor, color.blueColor, 1f,
+            rightTop.x, rightTop.y, rightTop.z,
+            color.redColor, color.greenColor, color.blueColor, 1f,
+            leftBottom.x, leftBottom.y, leftBottom.z,
+            color.redColor, color.greenColor, color.blueColor, 1f,
+
+            rightBottom.x, rightBottom.y, rightBottom.z,
+            color.redColor, color.greenColor, color.blueColor, 1f,
+            rightTop.x, rightTop.y, rightTop.z,
+            color.redColor, color.greenColor, color.blueColor, 1f,
+            leftBottom.x, leftBottom.y, leftBottom.z,
+            color.redColor, color.greenColor, color.blueColor, 1f
+        )
 }
+
+data class Coords(
+    val x: Float,
+    val y: Float,
+    val z: Float = 0.0f
+) {
+
+    constructor(r:Int,g: Int,b: Int=0): this(
+        x = r.toFloat(),
+        y = g.toFloat(),
+        z = b.toFloat()
+    )
+}
+
+val Coords.redColor: Float
+    get() = x / 255
+
+val Coords.greenColor: Float
+    get() = y / 255
+
+val Coords.blueColor: Float
+    get() = z / 255
