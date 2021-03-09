@@ -200,8 +200,8 @@ void main()
         // This triangle is white_blue.First sail is mainsail
 
         // 4c1f1a
-        val roofColor = Coords(76,31,26)
-        val windowColor = Coords(251,180,13)
+        val roofColor = Coords(129,138,193)
+        val windowColor = Coords(238,193,65)
 //        val windowColor = Coords(251,180,13)
         val roofVerticesData = floatArrayOf(
             // X, Y, Z,
@@ -218,7 +218,7 @@ void main()
             leftBottom = Coords(-0.89f, -0.75f),
             rightBottom = Coords(0.89f, -0.75f),
             rightTop = Coords(0.89f, 0.3125f),
-            color = Coords(57,34,32)
+            color = Coords(187,197,220)
         )
 
         val doorVerticesData = buildRectangleVertices(
