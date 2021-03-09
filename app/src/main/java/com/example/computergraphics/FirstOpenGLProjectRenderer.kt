@@ -3,6 +3,7 @@ package com.example.computergraphics
 import android.opengl.GLES10
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
+import android.opengl.Matrix
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -10,19 +11,33 @@ import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
 class FirstOpenGLProjectRenderer : GLSurfaceView.Renderer {
+    // матрица модели
     private val mModelMatrix = FloatArray(16)
+
+    // видовая матрица
+    private val mViewMatrix = FloatArray(16)
+
+    // модельновидовая матрица
     private val mMVPMatrix = FloatArray(16)
 
-    /** Store our model data in a float buffer.  */
+    // проекционная матрица
+    private val mProjectionMatrix = FloatArray(16)
+
+    /** буфер VBO.  */
     private val roofVertices: FloatBuffer
     private val doorVertices: FloatBuffer
     private val buildingVertices: FloatBuffer
     private val windowVertices: FloatBuffer
+
+    // переменная матрицы трансформации
+    private var mMVPMatrixHandle = 0
+
+    // переменная для model position данных
+    private var mPositionHandle = 0
     private var mColorHandle = 0
 
     /** How many bytes per float.  */
     private val mBytesPerFloat = 4
-    private var mPositionHandle = 0
 
     /** How many elements per vertex.  */
     private val mStrideBytes = 7 * mBytesPerFloat
@@ -38,17 +53,35 @@ class FirstOpenGLProjectRenderer : GLSurfaceView.Renderer {
 
     /** Size of the color data in elements.  */
     private val mColorDataSize = 4
-    private val x = 0f
-
+    private var x = 0f
     override fun onSurfaceCreated(glUnused: GL10, config: EGLConfig) {
         GLES10.glClearColor(1f, 1f, 1f, 1.0f)
-        val vertexShader = """attribute vec4 a_Position;     
+
+        // Позиция камеры за объектом
+        val eyeX = 0.0f
+        val eyeY = 0.0f
+        val eyeZ = 1.5f
+
+        // Определяем напрвление камеры
+        val lookX = 0.0f
+        val lookY = 0.0f
+        val lookZ = -5.0f
+
+        // Устанавливаем позицию up-вектора камеры. This is where our head would be pointing were we holding the camera.
+        val upX = 0.0f
+        val upY = 1.0f
+        val upZ = 0.0f
+
+        //установление камеры (матрицы просмотра)
+        Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, lookX, lookY, lookZ, upX, upY, upZ)
+        val vertexShader = """uniform mat4 u_MVPMatrix;      
+attribute vec4 a_Position;     
 attribute vec4 a_Color;        
 varying vec4 v_Color;          
 void main()                    
 {                              
    v_Color = a_Color;          
-   gl_Position =  a_Position; 
+   gl_Position = u_MVPMatrix * a_Position; 
 }                              
 """ // normalized screen coordinates.
         val fragmentShader = """precision mediump float;       
@@ -114,7 +147,7 @@ void main()
             // Bind the fragment shader to the program.
             GLES20.glAttachShader(programHandle, fragmentShaderHandle)
 
-            // Bind attributes
+            //  Привязка атрибутов
             GLES20.glBindAttribLocation(programHandle, 0, "a_Position")
             GLES20.glBindAttribLocation(programHandle, 1, "a_Color")
 
@@ -134,6 +167,9 @@ void main()
         if (programHandle == 0) {
             throw RuntimeException("Error creating program.")
         }
+
+// Устанавливаем программные переменные в переменныен шейдора uniform and atribut
+        mMVPMatrixHandle = GLES20.glGetUniformLocation(programHandle, "u_MVPMatrix")
         mPositionHandle = GLES20.glGetAttribLocation(programHandle, "a_Position")
         mColorHandle = GLES20.glGetAttribLocation(programHandle, "a_Color")
 
@@ -143,21 +179,47 @@ void main()
 
     // Set the OpenGL viewport to fill the entire surface.
     override fun onSurfaceChanged(glUnused: GL10, width: Int, height: Int) {
-        GLES10.glViewport(0, 0, width, height)
+        GLES20.glViewport(0, 0, width, height)
+
+        // Создаем новую перспективнро-поекционную матрицу. The height will stay the same
+        // while the width will vary as per aspect ratio.
+        val ratio = width.toFloat() / height
+        val left = -ratio
+        val bottom = -1.0f
+        val top = 1.0f
+        val near = 1.0f
+        val far = 10.0f
+        Matrix.frustumM(mProjectionMatrix, 0, left, ratio, bottom, top, near, far)
     }
 
     // Clear the rendering surface.
     override fun onDrawFrame(glUnused: GL10) {
         //   glClear(GL_COLOR_BUFFER_BIT);
         GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT or GLES20.GL_COLOR_BUFFER_BIT)
-
         // Draw the triangle facing straight on.
         //Matrix.setIdentityM(mModelMatrix, 0);
         // Matrix.translateM(mModelMatrix, 0, x, 0.0f, 0.0f);
         drawTriangle(roofVertices)
+
+        // Draw triangle_2.
+        Matrix.setIdentityM(mModelMatrix, 0)
+        Matrix.translateM(mModelMatrix, 0, x + 0.3f, 0.0f, 0.0f)
         drawTriangle(buildingVertices)
+
+        // Draw triangle_2.
+//        Matrix.setIdentityM(mModelMatrix, 0)
+//        Matrix.translateM(mModelMatrix, 0, x + 0.3f, 0.0f, 0.0f)
         drawTriangle(doorVertices)
+
+        // Draw triangle_2.
+//        Matrix.setIdentityM(mModelMatrix, 0)
+//        Matrix.translateM(mModelMatrix, 0, x + 0.3f, 0.0f, 0.0f)
         drawTriangle(windowVertices)
+        x = if (x <= 1) {
+            (x + 0.001).toFloat()
+        } else {
+            0f
+        }
     }
 
     /**
@@ -183,26 +245,21 @@ void main()
         GLES20.glEnableVertexAttribArray(mColorHandle)
 
         /* This multiplies the view matrix by the model matrix, and stores the result in the MVP matrix
-            // (which currently contains model * view).
-            Matrix.multiplyMM(mMVPMatrix, 0, mViewMatrix, 0, mModelMatrix, 0);
+            // (which currently contains model * view).*/
+        Matrix.multiplyMM(mMVPMatrix, 0, mViewMatrix, 0, mModelMatrix, 0)
 
-            // This multiplies the modelview matrix by the projection matrix, and stores the result in the MVP matrix
-            // (which now contains model * view * projection).
-            Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mMVPMatrix, 0); */
-
-        // GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mMVPMatrix, 0);
+        // This multiplies the modelview matrix by the projection matrix, and stores the result in the MVP matrix
+        // (which now contains model * view * projection).*/
+        Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mMVPMatrix, 0)
+        GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mMVPMatrix, 0)
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 13)
     }
 
     init {
         // Define points for equilateral triangles.
 
-        // This triangle is white_blue.First sail is mainsail
-
-        // 4c1f1a
-        val roofColor = Coords(129,138,193)
-        val windowColor = Coords(238,193,65)
-//        val windowColor = Coords(251,180,13)
+        val roofColor = Coords(129, 138, 193)
+        val windowColor = Coords(238, 193, 65)
         val roofVerticesData = floatArrayOf(
             // X, Y, Z,
             // R, G, B, A
@@ -218,7 +275,7 @@ void main()
             leftBottom = Coords(-0.89f, -0.75f),
             rightBottom = Coords(0.89f, -0.75f),
             rightTop = Coords(0.89f, 0.3125f),
-            color = Coords(187,197,220)
+            color = Coords(187, 197, 220)
         )
 
         val doorVerticesData = buildRectangleVertices(
@@ -285,7 +342,7 @@ data class Coords(
     val z: Float = 0.0f
 ) {
 
-    constructor(r:Int,g: Int,b: Int=0): this(
+    constructor(r: Int, g: Int, b: Int = 0): this(
         x = r.toFloat(),
         y = g.toFloat(),
         z = b.toFloat()
