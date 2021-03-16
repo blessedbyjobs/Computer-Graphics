@@ -15,6 +15,7 @@ class FirstOpenGLProjectRenderer : GLSurfaceView.Renderer {
 
     /** Store our model data in a float buffer.  */
     private val mTriangle1Vertices: FloatBuffer
+    private val mSquareVertices: FloatBuffer
     private var mColorHandle = 0
 
     /** How many bytes per float.  */
@@ -151,6 +152,7 @@ void main()
         //Matrix.setIdentityM(mModelMatrix, 0);
         // Matrix.translateM(mModelMatrix, 0, x, 0.0f, 0.0f);
         drawTriangle(mTriangle1Vertices)
+        drawTriangle(mSquareVertices)
     }
 
     /**
@@ -184,22 +186,59 @@ void main()
             Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mMVPMatrix, 0); */
 
         // GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mMVPMatrix, 0);
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 3)
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6)
     }
 
     init {
         // Define points for equilateral triangles.
 
         // This triangle is white_blue.First sail is mainsail
-        val triangle1VerticesData = floatArrayOf( // X, Y, Z,
+        val triangle1VerticesData = floatArrayOf(
+            // X, Y, Z,
             // R, G, B, A
             -0.5f, -0.25f, 0.0f,
             1.0f, 1.0f, 1.0f, 1.0f,
+
             0.0f, -0.25f, 0.0f,
             0.8f, 0.8f, 1.0f, 1.0f,
+
             0.0f, 0.56f, 0.0f,
-            0.8f, 0.8f, 1.0f, 1.0f
+            0.8f, 0.8f, 1.0f, 1.0f,
+
+            0.5f, -0.25f, 0.0f,
+            1.0f, 1.0f, 1.0f, 1.0f,
+
+            0.0f, -0.25f, 0.0f,
+            0.8f, 0.8f, 1.0f, 1.0f,
+
+            0.0f, 0.56f, 0.0f,
+            0.8f, 0.8f, 1.0f, 1.0f,
         )
+
+        val squareVerticesData = floatArrayOf(
+            0.0f, -0.25f, 0.0f,
+            1.0f, 1.0f, 1.0f, 1.0f,
+
+            0.0f, 0.25f, 0.0f,
+            1.0f, 1.0f, 1.0f, 1.0f,
+
+            0.5f, 0.25f, 0.0f,
+            1.0f, 1.0f, 1.0f, 1.0f,
+
+            0.0f, -0.25f, 0.0f,
+            1.0f, 1.0f, 1.0f, 1.0f,
+
+            0.5f, -0.25f, 0.0f,
+            1.0f, 1.0f, 1.0f, 1.0f,
+
+            0.5f, 0.25f, 0.0f,
+            1.0f, 1.0f, 1.0f, 1.0f
+        )
+
+        mSquareVertices = ByteBuffer.allocateDirect(squareVerticesData.size * mBytesPerFloat)
+            .order(ByteOrder.nativeOrder()).asFloatBuffer()
+        mSquareVertices.put(squareVerticesData).position(0)
+
         mTriangle1Vertices = ByteBuffer.allocateDirect(triangle1VerticesData.size * mBytesPerFloat)
             .order(ByteOrder.nativeOrder()).asFloatBuffer()
         mTriangle1Vertices.put(triangle1VerticesData).position(0)
