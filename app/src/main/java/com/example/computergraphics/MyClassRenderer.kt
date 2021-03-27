@@ -23,7 +23,7 @@ class MyClassRenderer(
     private val projectionMatrix = FloatArray(16)
     private val modelViewProjectionMatrix = FloatArray(16)
 
-    private val picture: Picture = BoatPicture
+    private val picture: Picture = HousePicture
     private val shaders = mutableListOf<Shader>()
 
     /**
@@ -88,15 +88,15 @@ class MyClassRenderer(
                 "vec3 n_normal=normalize(v_normal);"+
                 "vec3 lightvector = normalize(u_lightPosition - v_vertex);"+
                 "vec3 lookvector = normalize(u_camera - v_vertex);"+
-                "float ambient=0.2;"+
-                "float k_diffuse=0.9;"+
+                "float ambient=0.4;"+
+                "float k_diffuse=0.6;"+
                 "float k_specular=0.5;"+
                 "float diffuse = k_diffuse * max(dot(n_normal, lightvector), 0.0);"+
                 "vec3 reflectvector = reflect(-lightvector, n_normal);"+
                 "float specular = k_specular * pow( max(dot(lookvector,reflectvector),0.0), 40.0 );"+
                 "vec4 one=vec4(1.0,1.0,1.0,1.0);"+
                 "vec4 lightColor = (ambient+diffuse+specular)*one;"+
-                "gl_FragColor = mix(lightColor, v_color, 0.3);"+
+                "gl_FragColor = mix(lightColor, v_color, 0.5);"+
                 "}"
 
         picture.figures.map { figure ->
