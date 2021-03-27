@@ -2,5 +2,5 @@
 
 На данный момент реализована работа с освещением на примерах кораблика в море и домика
 
-![кораблик](./pictures/boat.png)
-![домик](./pictures/house.png)
+<img width=450 src="./pictures/boat.png" />
+<img width=450 src="./pictures/house.png" />
