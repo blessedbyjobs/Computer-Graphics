@@ -20,11 +20,6 @@ class MainActivity : AppCompatActivity() {
         val supportsEs2 = configurationInfo.reqGlEsVersion >= 0x20000
         if (supportsEs2) {
             mGLSurfaceView = MyClassSurfaceView(this)
-            // Request an OpenGL ES 2.0 compatible context.
-//            mGLSurfaceView!!.setEGLContextClientVersion(2)
-
-            // Set the renderer to our demo renderer, defined below.
-//            mGLSurfaceView!!.setRenderer(FirstOpenGLProjectRenderer())
         } else {
             // This is where you could create an OpenGL ES 1.x compatible
             // renderer if you wanted to support both ES 1 and ES 2.
@@ -34,14 +29,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onResume() {
-        // The activity must call the GL surface view's onResume() on activity onResume().
         super.onResume()
-        mGLSurfaceView!!.onResume()
+        mGLSurfaceView?.onResume()
     }
 
     override fun onPause() {
-        // The activity must call the GL surface view's onPause() on activity onPause().
         super.onPause()
-        mGLSurfaceView!!.onPause()
+        mGLSurfaceView?.onPause()
     }
 }
