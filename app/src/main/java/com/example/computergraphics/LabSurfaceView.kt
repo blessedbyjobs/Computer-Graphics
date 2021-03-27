@@ -3,12 +3,11 @@ package com.example.computergraphics
 import android.content.Context
 import android.opengl.GLSurfaceView
 
-
-class MyClassSurfaceView(context: Context) : GLSurfaceView(context) {
+class LabSurfaceView(context: Context) : GLSurfaceView(context) {
 
     init {
         setEGLContextClientVersion(2)
-        setRenderer(MyClassRenderer(context))
+        setRenderer(LabRenderer(context))
         // установим режим циклического запуска метода onDrawFrame
         renderMode = RENDERMODE_CONTINUOUSLY
         // при этом запускается отдельный поток
@@ -16,4 +15,3 @@ class MyClassSurfaceView(context: Context) : GLSurfaceView(context) {
         // т.е. бесконечно происходит перерисовка кадров
     }
 }
-

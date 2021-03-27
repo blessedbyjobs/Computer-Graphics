@@ -4,6 +4,7 @@ import android.content.Context
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.Matrix
+import com.example.computergraphics.assets.AssetReader.readAsset
 import com.example.computergraphics.geometry.Triangle
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
@@ -12,7 +13,7 @@ import javax.microedition.khronos.opengles.GL10
 /**
  * Рендерер для лабораторных работ
  */
-class MyClassRenderer(
+class LabRenderer(
     private val context: Context
 ) : GLSurfaceView.Renderer {
 
@@ -62,42 +63,8 @@ class MyClassRenderer(
         GLES20.glHint(
             GLES20.GL_GENERATE_MIPMAP_HINT, GLES20.GL_NICEST
         )
-        //записываем код вершинного шейдера в виде строки
-        val vertexShaderCode = "uniform mat4 u_modelViewProjectionMatrix;" +
-                "attribute vec3 a_vertex;" +
-                "attribute vec3 a_normal;" +
-                "attribute vec4 a_color;" +
-                "varying vec3 v_vertex;" +
-                "varying vec3 v_normal;" +
-                "varying vec4 v_color;" +
-                "void main() {" +
-                "v_vertex=a_vertex;" +
-                "vec3 n_normal=normalize(a_normal);" +
-                "v_normal=n_normal;" +
-                "v_color=a_color;" +
-                "gl_Position = u_modelViewProjectionMatrix * vec4(a_vertex,1.0);" +
-                "}"
-        //записываем код фрагментного шейдера в виде строки
-        val fragmentShaderCode = "precision mediump float;"+
-                "uniform vec3 u_camera;"+
-                "uniform vec3 u_lightPosition;"+
-                "varying vec3 v_vertex;"+
-                "varying vec3 v_normal;"+
-                "varying vec4 v_color;"+
-                "void main() {"+
-                "vec3 n_normal=normalize(v_normal);"+
-                "vec3 lightvector = normalize(u_lightPosition - v_vertex);"+
-                "vec3 lookvector = normalize(u_camera - v_vertex);"+
-                "float ambient=0.4;"+
-                "float k_diffuse=0.6;"+
-                "float k_specular=0.5;"+
-                "float diffuse = k_diffuse * max(dot(n_normal, lightvector), 0.0);"+
-                "vec3 reflectvector = reflect(-lightvector, n_normal);"+
-                "float specular = k_specular * pow( max(dot(lookvector,reflectvector),0.0), 40.0 );"+
-                "vec4 one=vec4(1.0,1.0,1.0,1.0);"+
-                "vec4 lightColor = (ambient+diffuse+specular)*one;"+
-                "gl_FragColor = mix(lightColor, v_color, 0.5);"+
-                "}"
+        val vertexShaderCode = context.readAsset("vertex.shader")
+        val fragmentShaderCode = context.readAsset("fragment.shader")
 
         picture.figures.map { figure ->
             Shader(vertexShaderCode, fragmentShaderCode).apply {
