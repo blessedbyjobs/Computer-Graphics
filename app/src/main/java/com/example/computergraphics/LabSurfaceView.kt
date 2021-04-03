@@ -7,7 +7,7 @@ class LabSurfaceView(context: Context) : GLSurfaceView(context) {
 
     init {
         setEGLContextClientVersion(2)
-        setRenderer(LabRenderer(context))
+        setRenderer(TextureLabOpenGLRenderer(context))
         // установим режим циклического запуска метода onDrawFrame
         renderMode = RENDERMODE_CONTINUOUSLY
         // при этом запускается отдельный поток
